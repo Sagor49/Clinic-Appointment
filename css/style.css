@@ -1364,200 +1364,6 @@ textarea {
   position: relative;
   z-index: 2;
 }
-.booking-grid {
-  display: grid;
-  grid-template-columns: 350px 1fr;
-  gap: 32px;
-  align-items: start;
-}
-
-.aside {
-  position: sticky;
-  top: calc(var(--nav-h) + 24px);
-  display: grid;
-  gap: 20px;
-}
-.aside-card {
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  padding: 28px;
-  box-shadow: var(--shadow);
-}
-.aside-card h3 {
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 18px;
-}
-
-/* selected doctor preview */
-.doc-preview {
-  padding: 0;
-  overflow: hidden;
-}
-.doc-preview [hidden] {
-  display: none !important;
-}
-.doc-preview .pv-photo {
-  position: relative;
-  aspect-ratio: 16 / 11;
-  background: var(--bg-2);
-  overflow: hidden;
-}
-.doc-preview .pv-photo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top;
-  transition: opacity 0.4s;
-}
-.doc-preview .pv-empty {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  text-align: center;
-  color: var(--muted);
-  font-size: 14px;
-  padding: 20px;
-  background: repeating-linear-gradient(45deg, var(--bg), var(--bg) 10px, var(--bg-2) 10px, var(--bg-2) 20px);
-}
-.doc-preview .pv-empty i {
-  display: block;
-  font-size: 34px;
-  color: var(--gold);
-  margin-bottom: 8px;
-}
-.doc-preview .pv-initials {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  font-family: var(--font-display);
-  font-size: 64px;
-  color: var(--gold-2);
-  background: var(--ink);
-}
-.doc-preview .pv-body {
-  padding: 22px 26px 26px;
-}
-.doc-preview .pv-role {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--gold);
-}
-.doc-preview .pv-name {
-  font-family: var(--font-display);
-  font-size: 24px;
-  color: var(--ink);
-  line-height: 1.2;
-  margin: 4px 0 12px;
-}
-.doc-preview .pv-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.doc-preview .pv-meta span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: var(--bg);
-  color: var(--ink-2);
-}
-.doc-preview .pv-meta i {
-  color: var(--brand);
-}
-
-.progress-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  gap: 4px;
-}
-.progress-list li {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--muted);
-  transition:
-    background 0.25s,
-    color 0.25s;
-}
-.progress-list .dot {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: 1.5px solid var(--line);
-  display: grid;
-  place-items: center;
-  font-size: 13px;
-  font-weight: 700;
-  flex-shrink: 0;
-  transition: all 0.3s var(--ease);
-}
-.progress-list li.current {
-  background: var(--bg);
-  color: var(--ink);
-}
-.progress-list li.current .dot {
-  border-color: var(--gold);
-  color: #8a6a33;
-}
-.progress-list li.done .dot {
-  background: var(--brand);
-  border-color: var(--brand);
-  color: #fff;
-}
-.progress-list li.done {
-  color: var(--ink);
-}
-.aside-dark {
-  background: var(--ink);
-  color: rgba(255, 255, 255, 0.7);
-  border: 0;
-  position: relative;
-  overflow: hidden;
-}
-.aside-dark::before {
-  content: "";
-  position: absolute;
-  right: -60px;
-  top: -60px;
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(184, 149, 90, 0.35), transparent);
-}
-.aside-dark h3 {
-  color: var(--gold-2);
-  position: relative;
-}
-.aside-dark p {
-  position: relative;
-}
-.aside-dark a {
-  position: relative;
-  color: #fff;
-  font-family: var(--font-display);
-  font-size: 24px;
-}
-.aside-dark a:hover {
-  color: var(--gold-2);
-}
 
 .form-card {
   background: #fff;
@@ -2023,6 +1829,175 @@ input[type="file"].control::file-selector-button {
   gap: 12px;
 }
 
+/* single-column layout for the booking + appointments pages */
+.booking-single {
+  max-width: 900px;
+}
+
+/* ==========================================================================
+   13b. MY APPOINTMENTS PAGE
+   ========================================================================== */
+.appts-bar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+}
+.appts-bar .field {
+  flex: 1;
+  max-width: 360px;
+}
+.appts-count {
+  margin: 20px 0 16px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.appts-count:empty {
+  display: none;
+}
+.appt-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+.appt {
+  display: grid;
+  grid-template-columns: 72px 1fr auto;
+  align-items: start;
+  gap: 20px;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  transition:
+    box-shadow 0.3s,
+    border-color 0.3s;
+}
+.appt:hover {
+  border-color: transparent;
+  box-shadow: var(--shadow);
+}
+.appt-date {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 76px;
+  border-radius: 50% 50% 16px 16px;
+  background: var(--ink);
+  color: var(--gold-2);
+  text-align: center;
+  line-height: 1.1;
+}
+.appt-date b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 500;
+  color: #fff;
+}
+.appt-date span {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.appt-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.appt-ref {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+.badge-up {
+  background: var(--brand-50);
+  color: var(--brand-700);
+}
+.badge-past {
+  background: var(--bg-2);
+  color: var(--muted);
+}
+.appt-info h3 {
+  font-size: 18px;
+  margin: 0 0 4px;
+}
+.appt-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+.appt-meta span:first-child {
+  font-weight: 600;
+  color: var(--brand);
+}
+.appt-reason {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.appt.is-past {
+  opacity: 0.7;
+}
+.appt.is-past .appt-date {
+  background: var(--bg-2);
+}
+.appt.is-past .appt-date b {
+  color: var(--muted);
+}
+.appt-cancel:hover {
+  background: var(--danger);
+  border-color: var(--danger);
+}
+.appt-empty {
+  text-align: center;
+  padding: 48px 16px 24px;
+}
+.appt-empty > i {
+  display: block;
+  font-size: 44px;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+.appt-empty h2 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 28px;
+}
+.appt-empty p {
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+.appts-note {
+  display: flex;
+  gap: 8px;
+  margin: 28px 0 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--muted);
+}
+.appts-note i {
+  color: var(--gold);
+}
+
 /* ==========================================================================
    14. RESPONSIVE
    ========================================================================== */
@@ -2221,20 +2196,6 @@ input[type="file"].control::file-selector-button {
   }
   .page-hero h1 {
     font-size: 52px;
-  }
-  .booking-grid {
-    grid-template-columns: 1fr;
-  }
-  .aside {
-    position: static;
-    grid-template-columns: 1fr 1fr;
-    order: 2;
-  }
-  .aside .progress-card {
-    display: none;
-  } /* progress is only useful beside the form (desktop) */
-  .doc-preview {
-    grid-row: span 2;
   }
   .form-card {
     padding: 44px;
@@ -2532,20 +2493,6 @@ input[type="file"].control::file-selector-button {
   .booking {
     margin-top: -96px;
   }
-  .booking-grid {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-  .aside {
-    position: static;
-    order: 2;
-  }
-  .aside .progress-card {
-    display: none;
-  }
-  .aside-card {
-    padding: 24px;
-  }
   .form-card {
     padding: 28px 20px;
     border-radius: 22px;
@@ -2621,5 +2568,32 @@ input[type="file"].control::file-selector-button {
   .reveal {
     opacity: 1;
     transform: none;
+  }
+}
+
+/* ----- Mobile: My Appointments ----- */
+@media (max-width: 767px) {
+  .appts-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .appts-bar .field {
+    max-width: none;
+  }
+  .appt {
+    grid-template-columns: 56px 1fr;
+    gap: 14px;
+    padding: 18px;
+  }
+  .appt-date {
+    width: 56px;
+    height: 60px;
+  }
+  .appt-date b {
+    font-size: 22px;
+  }
+  .appt-cancel {
+    grid-column: 1 / -1;
+    width: 100%;
   }
 }

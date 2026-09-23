@@ -34,7 +34,7 @@
           <li><a href="index.html">Home</a></li>
           <li><a href="index.html#services">Services</a></li>
           <li><a href="index.html#about">About</a></li>
-          <li><a href="index.html#doctors">Doctors</a></li>
+          <li><a href="appointments.html">My Appointments</a></li>
           <li><a href="#contact">Contact</a></li>
         </ul>
         <a href="book.html" class="btn btn-primary" aria-current="page"><i class="bi bi-calendar2-plus"></i> Book Appointment</a>
@@ -48,7 +48,7 @@
         <div class="crumbs"><a href="index.html">Home</a> &nbsp;/&nbsp; Book Appointment</div>
         <span class="eyebrow">Online Booking</span>
         <h1 class="display">Book your <em>appointment</em></h1>
-        <p>Tell us a little about yourself and choose a time. Fields marked <span style="color:#f3a5a5">*</span> are required.</p>
+        <p>Fill in the form below and choose a time. Fields marked <span style="color:#f3a5a5">*</span> are required.</p>
       </div>
       <div class="hero-team">
         <div class="avatars">
@@ -63,215 +63,135 @@
   </header>
 
   <main class="booking">
-    <div class="container booking-grid">
+    <div class="container booking-single">
 
-      <!-- Sidebar -->
-      <aside class="aside">
-        <!-- Selected doctor preview (updates when a doctor is chosen) -->
-        <div class="aside-card doc-preview" id="docPreview" aria-live="polite">
-          <div class="pv-photo">
-            <img id="pvImg" src="" alt="" hidden>
-            <div class="pv-initials" id="pvInitials" hidden></div>
-            <div class="pv-empty" id="pvEmpty"><div><i class="bi bi-person-badge"></i>Choose a department and doctor to see them here</div></div>
+      <!-- ===== Success message + summary (shown after a valid submit) ===== -->
+      <section id="successBox" class="form-card success" role="status" aria-live="polite" tabindex="-1">
+        <div class="success-head">
+          <div class="success-icon"><i class="bi bi-check2-circle"></i></div>
+          <div>
+            <h2>Appointment booked!</h2>
+            <p>Reference <span class="ref" id="refNo"></span> — here is a summary of what you entered.</p>
           </div>
-          <div class="pv-body">
-            <div class="pv-role" id="pvRole">Your doctor</div>
-            <div class="pv-name" id="pvName">Not selected yet</div>
-            <div class="pv-meta">
-              <span><i class="bi bi-clock"></i><span id="pvDur">—</span></span>
-              <span><i class="bi bi-cash-stack"></i><span id="pvFee">—</span></span>
+        </div>
+        <dl class="summary" id="summaryBody"></dl>
+        <div class="success-actions">
+          <a href="appointments.html" class="btn btn-primary"><i class="bi bi-list-check"></i> My Appointments</a>
+          <button type="button" id="newBooking" class="btn btn-secondary"><i class="bi bi-plus-lg"></i> Book Another</button>
+        </div>
+      </section>
+
+      <!-- ===== Booking form ===== -->
+      <div class="form-card" id="formCard">
+        <!-- novalidate: our own JS validation shows the error next to each field -->
+        <form id="bookingForm" novalidate>
+
+          <!-- 1. Patient details -->
+          <fieldset class="fieldset">
+            <legend class="legend"><span class="legend-num">1</span><span><h2>Patient details</h2><small>Who is the appointment for?</small></span></legend>
+            <div class="grid-2">
+              <div class="field">
+                <label class="label" for="fullName">Full name <span class="req">*</span></label>
+                <input class="control" type="text" id="fullName" name="fullName" placeholder="e.g. Rahim Uddin" autocomplete="name">
+                <div class="error-msg" id="fullName-error"></div>
+              </div>
+              <div class="field">
+                <label class="label" for="email">Email address <span class="req">*</span></label>
+                <input class="control" type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email">
+                <div class="error-msg" id="email-error"></div>
+              </div>
+              <div class="field">
+                <label class="label" for="phone">Mobile number <span class="req">*</span></label>
+                <input class="control" type="tel" id="phone" name="phone" placeholder="01XXXXXXXXX" autocomplete="tel">
+                <div class="hint">11 digits starting with 013–019, e.g. 01712345678</div>
+                <div class="error-msg" id="phone-error"></div>
+              </div>
+              <div class="field">
+                <label class="label" for="age">Age <span class="req">*</span></label>
+                <input class="control" type="number" id="age" name="age" min="0" max="120" placeholder="e.g. 28">
+                <div class="error-msg" id="age-error"></div>
+              </div>
+              <div class="field col-full">
+                <span class="label" id="gender-label">Gender <span class="req">*</span></span>
+                <div class="choices" id="gender-group" role="radiogroup" aria-labelledby="gender-label">
+                  <div class="choice"><input type="radio" name="gender" id="gMale" value="Male"><label for="gMale"><i class="bi bi-gender-male"></i> Male</label></div>
+                  <div class="choice"><input type="radio" name="gender" id="gFemale" value="Female"><label for="gFemale"><i class="bi bi-gender-female"></i> Female</label></div>
+                  <div class="choice"><input type="radio" name="gender" id="gOther" value="Other"><label for="gOther">Other</label></div>
+                </div>
+                <div class="error-msg" id="gender-error"></div>
+              </div>
             </div>
-          </div>
-        </div>
+          </fieldset>
 
-        <div class="aside-card progress-card">
-          <h3>Your progress</h3>
-          <ol class="progress-list" id="progress">
-            <li data-step="1" class="current"><span class="dot">1</span>Patient details</li>
-            <li data-step="2"><span class="dot">2</span>Appointment</li>
-            <li data-step="3"><span class="dot">3</span>Medical info</li>
-            <li data-step="4"><span class="dot">4</span>Account</li>
-          </ol>
-        </div>
-
-        <div class="aside-card aside-dark">
-          <h3>Need help booking?</h3>
-          <p>Our front desk is happy to help, Sat – Thu, 9 AM – 8 PM.</p>
-          <a href="tel:+8801700000000"><i class="bi bi-telephone"></i> +880 1700-000000</a>
-        </div>
-      </aside>
-
-      <div>
-        <!-- ===== Success summary (shown after a valid submit) ===== -->
-        <section id="successBox" class="form-card success" role="status" aria-live="polite" tabindex="-1">
-          <div class="success-head">
-            <div class="success-icon"><i class="bi bi-check2-circle"></i></div>
-            <div>
-              <h2>Appointment request received!</h2>
-              <p>Reference <span class="ref" id="refNo"></span> — here is a summary of what you entered.</p>
+          <!-- 2. Appointment -->
+          <fieldset class="fieldset">
+            <legend class="legend"><span class="legend-num">2</span><span><h2>Appointment</h2><small>Choose your doctor, date and time</small></span></legend>
+            <div class="grid-2">
+              <div class="field col-full">
+                <label class="label" for="doctor">Doctor <span class="req">*</span></label>
+                <select class="control" id="doctor" name="doctor">
+                  <option value="">Select a doctor</option>
+                  <optgroup label="General Medicine">
+                    <option value="Dr. Ayesha Rahman" data-dept="General Medicine">Dr. Ayesha Rahman — General Medicine</option>
+                    <option value="Dr. Kamal Hossain" data-dept="General Medicine">Dr. Kamal Hossain — General Medicine</option>
+                  </optgroup>
+                  <optgroup label="Dental Care">
+                    <option value="Dr. Tanvir Hasan" data-dept="Dental Care">Dr. Tanvir Hasan — Dental Care</option>
+                    <option value="Dr. Farhana Akter" data-dept="Dental Care">Dr. Farhana Akter — Dental Care</option>
+                  </optgroup>
+                  <optgroup label="Pediatrics (under 18)">
+                    <option value="Dr. Nusrat Jahan" data-dept="Pediatrics">Dr. Nusrat Jahan — Pediatrics</option>
+                    <option value="Dr. Imran Kabir" data-dept="Pediatrics">Dr. Imran Kabir — Pediatrics</option>
+                  </optgroup>
+                  <optgroup label="Cardiology">
+                    <option value="Dr. Mahbub Alam" data-dept="Cardiology">Dr. Mahbub Alam — Cardiology</option>
+                    <option value="Dr. Sharmin Sultana" data-dept="Cardiology">Dr. Sharmin Sultana — Cardiology</option>
+                  </optgroup>
+                  <optgroup label="Eye Care">
+                    <option value="Dr. Rafiq Ahmed" data-dept="Eye Care">Dr. Rafiq Ahmed — Eye Care</option>
+                  </optgroup>
+                  <optgroup label="Orthopedics">
+                    <option value="Dr. Shahid Karim" data-dept="Orthopedics">Dr. Shahid Karim — Orthopedics</option>
+                  </optgroup>
+                </select>
+                <div class="error-msg" id="doctor-error"></div>
+              </div>
+              <div class="field">
+                <label class="label" for="apptDate">Preferred date <span class="req">*</span></label>
+                <input class="control" type="date" id="apptDate" name="apptDate">
+                <div class="hint">Closed on Fridays</div>
+                <div class="error-msg" id="apptDate-error"></div>
+              </div>
+              <div class="field">
+                <label class="label" for="apptTime">Preferred time <span class="req">*</span></label>
+                <select class="control" id="apptTime" name="apptTime">
+                  <option value="">Select a time</option>
+                </select>
+                <div class="error-msg" id="apptTime-error"></div>
+              </div>
+              <div class="field col-full">
+                <label class="label" for="reason">Reason for visit <span class="req">*</span></label>
+                <textarea class="control" id="reason" name="reason" rows="4" maxlength="300" placeholder="Briefly describe your symptoms or reason for the visit"></textarea>
+                <div class="row-between">
+                  <div class="error-msg" id="reason-error"></div>
+                  <span class="counter" id="reasonCount">0 / 300</span>
+                </div>
+              </div>
+              <div class="field col-full">
+                <label class="check"><input type="checkbox" id="terms" name="terms"> <span>I agree to the clinic's terms &amp; cancellation policy <span class="req" style="color:var(--danger)">*</span></span></label>
+                <div class="error-msg" id="terms-error"></div>
+              </div>
             </div>
+          </fieldset>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-send"></i> Submit Booking</button>
+            <button type="reset" class="btn btn-secondary btn-lg"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+            <a class="note" href="appointments.html"><i class="bi bi-list-check"></i> View my appointments</a>
           </div>
-          <dl class="summary" id="summaryBody"></dl>
-          <div class="success-actions">
-            <button type="button" id="newBooking" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Book Another</button>
-            <a href="index.html" class="btn btn-secondary">Back to Home</a>
-          </div>
-        </section>
-
-        <!-- ===== Booking form ===== -->
-        <div class="form-card" id="formCard">
-          <!-- novalidate: custom JS validation shows inline messages -->
-          <form id="bookingForm" novalidate>
-
-            <!-- 1. Patient details -->
-            <fieldset class="fieldset" data-step="1">
-              <legend class="legend"><span class="legend-num">1</span><span><h2>Patient details</h2><small>Who is the appointment for?</small></span></legend>
-              <div class="grid-2">
-                <div class="field">
-                  <label class="label" for="fullName">Full name <span class="req">*</span></label>
-                  <input class="control" type="text" id="fullName" name="fullName" placeholder="e.g. Rahim Uddin" autocomplete="name" aria-describedby="fullName-error">
-                  <div class="error-msg" id="fullName-error"></div>
-                </div>
-                <div class="field">
-                  <label class="label" for="email">Email address <span class="req">*</span></label>
-                  <input class="control" type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" aria-describedby="email-error">
-                  <div class="error-msg" id="email-error"></div>
-                </div>
-                <div class="field">
-                  <label class="label" for="phone">Mobile number <span class="req">*</span></label>
-                  <input class="control" type="tel" id="phone" name="phone" placeholder="01XXXXXXXXX" autocomplete="tel" aria-describedby="phone-hint phone-error">
-                  <div class="hint" id="phone-hint">11 digits starting with 013–019, e.g. 01712345678</div>
-                  <div class="error-msg" id="phone-error"></div>
-                </div>
-                <div class="field">
-                  <label class="label" for="dob">Date of birth <span class="req">*</span></label>
-                  <input class="control" type="date" id="dob" name="dob" aria-describedby="dob-error">
-                  <div class="error-msg" id="dob-error"></div>
-                </div>
-                <div class="field col-full">
-                  <span class="label" id="gender-label">Gender <span class="req">*</span></span>
-                  <div class="choices" id="gender-group" role="radiogroup" aria-labelledby="gender-label">
-                    <div class="choice"><input type="radio" name="gender" id="gMale" value="Male"><label for="gMale"><i class="bi bi-gender-male"></i> Male</label></div>
-                    <div class="choice"><input type="radio" name="gender" id="gFemale" value="Female"><label for="gFemale"><i class="bi bi-gender-female"></i> Female</label></div>
-                    <div class="choice"><input type="radio" name="gender" id="gOther" value="Other"><label for="gOther">Other</label></div>
-                  </div>
-                  <div class="error-msg" id="gender-error"></div>
-                </div>
-              </div>
-            </fieldset>
-
-            <!-- 2. Appointment -->
-            <fieldset class="fieldset" data-step="2">
-              <legend class="legend"><span class="legend-num">2</span><span><h2>Appointment</h2><small>Choose department, doctor and time</small></span></legend>
-              <div class="grid-2">
-                <div class="field">
-                  <label class="label" for="department">Department <span class="req">*</span></label>
-                  <select class="control" id="department" name="department" aria-describedby="department-error">
-                    <option value="">Select department</option>
-                    <option value="general">General Medicine</option>
-                    <option value="dental">Dental Care</option>
-                    <option value="pediatrics">Pediatrics</option>
-                    <option value="cardiology">Cardiology</option>
-                    <option value="eye">Eye Care</option>
-                    <option value="ortho">Orthopedics</option>
-                  </select>
-                  <div class="error-msg" id="department-error"></div>
-                </div>
-                <div class="field">
-                  <label class="label" for="doctor">Doctor <span class="req">*</span></label>
-                  <select class="control" id="doctor" name="doctor" disabled aria-describedby="doctor-error">
-                    <option value="">Select department first</option>
-                  </select>
-                  <div class="error-msg" id="doctor-error"></div>
-                </div>
-                <div class="field">
-                  <label class="label" for="apptDate">Preferred date <span class="req">*</span></label>
-                  <input class="control" type="date" id="apptDate" name="apptDate" aria-describedby="apptDate-hint apptDate-error">
-                  <div class="hint" id="apptDate-hint">Closed Fridays · up to 60 days ahead</div>
-                  <div class="error-msg" id="apptDate-error"></div>
-                </div>
-                <div class="field">
-                  <label class="label" for="apptTime">Preferred time <span class="req">*</span></label>
-                  <input class="control" type="time" id="apptTime" name="apptTime" min="09:00" max="19:45" step="900" aria-describedby="apptTime-hint apptTime-error">
-                  <div class="hint" id="apptTime-hint">Between 9:00 AM and 7:45 PM</div>
-                  <div class="error-msg" id="apptTime-error"></div>
-                </div>
-              </div>
-            </fieldset>
-
-            <!-- 3. Medical info -->
-            <fieldset class="fieldset" data-step="3">
-              <legend class="legend"><span class="legend-num">3</span><span><h2>Medical information</h2><small>Helps the doctor prepare for your visit</small></span></legend>
-              <div class="grid-2">
-                <div class="field">
-                  <span class="label" id="visitType-label">Visit type <span class="req">*</span></span>
-                  <div class="choices" id="visitType-group" role="radiogroup" aria-labelledby="visitType-label">
-                    <div class="choice"><input type="radio" name="visitType" id="vNew" value="New patient"><label for="vNew">New patient</label></div>
-                    <div class="choice"><input type="radio" name="visitType" id="vFollow" value="Follow-up"><label for="vFollow">Follow-up</label></div>
-                  </div>
-                  <div class="error-msg" id="visitType-error"></div>
-                </div>
-                <div class="field">
-                  <label class="label" for="prevVisits">Previous visits <span class="req">*</span></label>
-                  <input class="control" type="number" id="prevVisits" name="prevVisits" min="0" max="100" step="1" value="0" inputmode="numeric" aria-describedby="prevVisits-hint prevVisits-error">
-                  <div class="hint" id="prevVisits-hint">Must be at least 1 for a follow-up</div>
-                  <div class="error-msg" id="prevVisits-error"></div>
-                </div>
-                <div class="field col-full">
-                  <label class="label" for="symptoms">Reason for visit / symptoms <span class="req">*</span></label>
-                  <textarea class="control" id="symptoms" name="symptoms" rows="4" maxlength="500" placeholder="Briefly describe your symptoms or the reason for your visit" aria-describedby="symptoms-error"></textarea>
-                  <div class="row-between">
-                    <div class="error-msg" id="symptoms-error"></div>
-                    <span class="counter" id="symptomsCount">0 / 500</span>
-                  </div>
-                </div>
-                <div class="field col-full">
-                  <label class="label" for="reports">Previous reports <span class="opt">(optional)</span></label>
-                  <input class="control" type="file" id="reports" name="reports" accept=".pdf,.jpg,.jpeg,.png" aria-describedby="reports-hint reports-error">
-                  <div class="hint" id="reports-hint">PDF, JPG or PNG · max 2 MB</div>
-                  <div class="error-msg" id="reports-error"></div>
-                </div>
-              </div>
-            </fieldset>
-
-            <!-- 4. Account -->
-            <fieldset class="fieldset" data-step="4">
-              <legend class="legend"><span class="legend-num">4</span><span><h2>Patient portal account</h2><small>To view and manage your appointments</small></span></legend>
-              <div class="grid-2">
-                <div class="field">
-                  <label class="label" for="password">Password <span class="req">*</span></label>
-                  <div class="input-wrap">
-                    <input class="control" type="password" id="password" name="password" autocomplete="new-password" aria-describedby="strengthText password-error">
-                    <button class="pw-toggle" type="button" data-target="password" aria-label="Show password"><i class="bi bi-eye"></i></button>
-                  </div>
-                  <div class="meter" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-                  <div class="hint" id="strengthText">8+ characters with uppercase, lowercase, a number and a symbol</div>
-                  <div class="error-msg" id="password-error"></div>
-                </div>
-                <div class="field">
-                  <label class="label" for="confirmPassword">Confirm password <span class="req">*</span></label>
-                  <div class="input-wrap">
-                    <input class="control" type="password" id="confirmPassword" name="confirmPassword" autocomplete="new-password" aria-describedby="confirmPassword-error">
-                    <button class="pw-toggle" type="button" data-target="confirmPassword" aria-label="Show password"><i class="bi bi-eye"></i></button>
-                  </div>
-                  <div class="error-msg" id="confirmPassword-error"></div>
-                </div>
-                <div class="field col-full">
-                  <label class="check"><input type="checkbox" id="smsReminder" name="smsReminder" checked> Send me an SMS reminder the day before</label>
-                  <label class="check"><input type="checkbox" id="terms" name="terms" aria-describedby="terms-error"> <span>I agree to the clinic's terms &amp; cancellation policy <span class="req" style="color:var(--danger)">*</span></span></label>
-                  <div class="error-msg" id="terms-error"></div>
-                </div>
-              </div>
-            </fieldset>
-
-            <div class="form-actions">
-              <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-send"></i> Submit Booking</button>
-              <button type="reset" class="btn btn-secondary btn-lg"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
-              <span class="note"><i class="bi bi-shield-lock"></i> Your data stays in your browser</span>
-            </div>
-          </form>
-        </div>
+        </form>
       </div>
+
     </div>
   </main>
 
@@ -295,6 +215,7 @@
             <li><a href="index.html#services">Services</a></li>
             <li><a href="index.html#doctors">Doctors</a></li>
             <li><a href="book.html">Book Appointment</a></li>
+            <li><a href="appointments.html">My Appointments</a></li>
           </ul>
         </div>
         <div>

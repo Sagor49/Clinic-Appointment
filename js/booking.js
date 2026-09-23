@@ -1,106 +1,96 @@
 /* =========================================================
-   CarePoint Clinic — Booking form client-side validation
-   No backend: on a valid submit we show a success summary.
+   CarePoint Clinic — Booking form (book.html)
+   - Client-side validation with an error next to each field
+   - On a valid submit: save to localStorage + show a summary
+   No backend is used.
    ========================================================= */
 (function () {
   'use strict';
 
+  var STORAGE_KEY = 'carepoint.appointments';
+
   var form = document.getElementById('bookingForm');
-  var successBox = document.getElementById('successBox');
   var formCard = document.getElementById('formCard');
-
-  // ---------- Data: doctors per department ----------
-  var DOCTORS = {
-    general:    ['Dr. Ayesha Rahman', 'Dr. Kamal Hossain'],
-    dental:     ['Dr. Tanvir Hasan', 'Dr. Farhana Akter'],
-    pediatrics: ['Dr. Nusrat Jahan', 'Dr. Imran Kabir'],
-    cardiology: ['Dr. Mahbub Alam', 'Dr. Sharmin Sultana'],
-    eye:        ['Dr. Rafiq Ahmed'],
-    ortho:      ['Dr. Shahid Karim', 'Dr. Laila Noor']
-  };
-
-  // ---------- Helpers ----------
+  var successBox = document.getElementById('successBox');
   var $ = function (id) { return document.getElementById(id); };
 
-  // Parse "YYYY-MM-DD" as a LOCAL date (new Date("YYYY-MM-DD") would be UTC)
-  function parseDate(str) {
+  // ---------- Helpers ----------
+  function today() { var d = new Date(); d.setHours(0, 0, 0, 0); return d; }
+  function parseDate(str) {               // "YYYY-MM-DD" → local Date
     if (!str) return null;
     var p = str.split('-');
     return new Date(+p[0], +p[1] - 1, +p[2]);
   }
-  function today() { var d = new Date(); d.setHours(0, 0, 0, 0); return d; }
   function toISO(d) {
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-  }
-  function ageOn(dob, onDate) {
-    var age = onDate.getFullYear() - dob.getFullYear();
-    var m = onDate.getMonth() - dob.getMonth();
-    if (m < 0 || (m === 0 && onDate.getDate() < dob.getDate())) age--;
-    return age;
   }
   function radioValue(name) {
     var r = form.querySelector('input[name="' + name + '"]:checked');
     return r ? r.value : '';
   }
+  function selectedDept() {
+    var opt = $('doctor').selectedOptions[0];
+    return opt ? opt.getAttribute('data-dept') || '' : '';
+  }
+  function to12h(t) {                     // "14:30" → "2:30 PM"
+    var h = +t.split(':')[0], m = t.split(':')[1];
+    return ((h % 12) || 12) + ':' + m + ' ' + (h >= 12 ? 'PM' : 'AM');
+  }
 
-  // Limit the date pickers (UX help — JS rules below still enforce it)
-  var maxBook = today(); maxBook.setDate(maxBook.getDate() + 60);
+  // ---------- Time slots: 9:00 AM – 7:30 PM, every 30 minutes ----------
+  for (var h = 9; h < 20; h++) {
+    ['00', '30'].forEach(function (m) {
+      var v = String(h).padStart(2, '0') + ':' + m;
+      $('apptTime').add(new Option(to12h(v), v));
+    });
+  }
+
+  // Date picker can't go into the past
   $('apptDate').min = toISO(today());
-  $('apptDate').max = toISO(maxBook);
-  $('dob').max = toISO(today());
 
   // ---------- Show / clear an error next to its field ----------
   function setError(field, message) {
-    var el = $(field + '-error');
+    var box = $(field + '-error');
     var input = $(field) || $(field + '-group');
-    if (message) {
-      el.textContent = message;
-      el.classList.add('show');
-      if (input) { input.classList.add('is-invalid'); input.classList.remove('is-valid'); input.setAttribute('aria-invalid', 'true'); }
-    } else {
-      el.textContent = '';
-      el.classList.remove('show');
-      if (input) { input.classList.remove('is-invalid'); input.removeAttribute('aria-invalid'); }
-    }
+    box.textContent = message;
+    box.classList.toggle('show', !!message);
+    input.classList.toggle('is-invalid', !!message);
+    input.classList.toggle('is-valid', !message && input.classList.contains('control') && !!input.value);
     return !message;
   }
-  function markValid(field) {
-    var input = $(field);
-    if (input && input.classList.contains('control') && input.value) input.classList.add('is-valid');
-  }
 
-  // ---------- Validation rules (one function per field) ----------
+  // ---------- Validation rules (return '' when valid) ----------
   var rules = {
+    // required + length rule
     fullName: function () {
       var v = $('fullName').value.trim();
       if (!v) return 'Full name is required.';
       if (v.length < 3) return 'Name must be at least 3 characters.';
-      if (v.length > 60) return 'Name must be 60 characters or fewer.';
-      if (!/^[A-Za-z][A-Za-z .'-]*$/.test(v)) return 'Name can contain letters, spaces, dots, hyphens and apostrophes only.';
+      if (!/^[A-Za-z][A-Za-z .'-]*$/.test(v)) return 'Name can contain letters, spaces, dots and hyphens only.';
       return '';
     },
 
+    // email format
     email: function () {
       var v = $('email').value.trim();
       if (!v) return 'Email address is required.';
-      // format: something@domain.tld
-      if (!/^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(v)) return 'Enter a valid email address, e.g. name@example.com.';
+      if (!/^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(v)) return 'Enter a valid email, e.g. name@example.com.';
       return '';
     },
 
-    // PATTERN RULE: Bangladeshi mobile number
+    // PATTERN rule: Bangladeshi mobile number
     phone: function () {
       var v = $('phone').value.replace(/[\s-]/g, '');
       if (!v) return 'Mobile number is required.';
-      if (!/^(?:\+?88)?01[3-9]\d{8}$/.test(v)) return 'Enter a valid 11-digit mobile number starting with 013–019 (e.g. 01712345678).';
+      if (!/^01[3-9]\d{8}$/.test(v)) return 'Enter an 11-digit number starting with 013–019, e.g. 01712345678.';
       return '';
     },
 
-    dob: function () {
-      var d = parseDate($('dob').value);
-      if (!d) return 'Date of birth is required.';
-      if (d > today()) return 'Date of birth cannot be in the future.';
-      if (ageOn(d, today()) > 120) return 'Please enter a realistic date of birth.';
+    age: function () {
+      var raw = $('age').value;
+      if (raw === '') return 'Age is required.';
+      var n = Number(raw);
+      if (!Number.isInteger(n) || n < 0 || n > 120) return 'Enter a whole number between 0 and 120.';
       return '';
     },
 
@@ -108,255 +98,92 @@
       return radioValue('gender') ? '' : 'Please select a gender.';
     },
 
-    // CROSS-FIELD: Pediatrics is only for patients under 18
-    department: function () {
-      var v = $('department').value;
-      if (!v) return 'Please select a department.';
-      var dob = parseDate($('dob').value);
-      if (v === 'pediatrics' && dob && ageOn(dob, parseDate($('apptDate').value) || today()) >= 18) {
-        return 'Pediatrics is for patients under 18. Please choose another department.';
+    // CROSS-FIELD rule: Pediatrics doctors only see patients under 18
+    doctor: function () {
+      if (!$('doctor').value) return 'Please select a doctor.';
+      var age = Number($('age').value);
+      if (selectedDept() === 'Pediatrics' && $('age').value !== '' && age >= 18) {
+        return 'Pediatrics is for patients under 18. Please choose another doctor.';
       }
       return '';
     },
 
-    doctor: function () {
-      return $('doctor').value ? '' : 'Please select a doctor.';
-    },
-
-    // CROSS-FIELD: appointment date must be after date of birth, not in the past, not a Friday
     apptDate: function () {
       var d = parseDate($('apptDate').value);
-      if (!d) return 'Please choose an appointment date.';
-      if (d < today()) return 'Appointment date cannot be in the past.';
-      if (d > maxBook) return 'You can book at most 60 days in advance.';
+      if (!d) return 'Please choose a date.';
+      if (d < today()) return 'The date cannot be in the past.';
       if (d.getDay() === 5) return 'The clinic is closed on Fridays. Please pick another day.';
-      var dob = parseDate($('dob').value);
-      if (dob && d <= dob) return 'Appointment date must be after the date of birth.';
       return '';
     },
 
+    // CROSS-FIELD rule: a time booked for today must still be ahead
     apptTime: function () {
-      var v = $('apptTime').value;
-      if (!v) return 'Please choose a preferred time.';
-      if (v < '09:00' || v > '19:45') return 'Please choose a time between 9:00 AM and 7:45 PM.';
-      // CROSS-FIELD: if booking for today, time must still be ahead
+      var t = $('apptTime').value;
+      if (!t) return 'Please choose a time.';
       var d = parseDate($('apptDate').value);
       if (d && d.getTime() === today().getTime()) {
         var now = new Date();
         var nowStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
-        if (v <= nowStr) return 'That time has already passed today. Choose a later time.';
+        if (t <= nowStr) return 'That time has already passed today. Choose a later time.';
       }
       return '';
     },
 
-    visitType: function () {
-      return radioValue('visitType') ? '' : 'Please select the visit type.';
-    },
-
-    // CROSS-FIELD: follow-up needs at least one previous visit
-    prevVisits: function () {
-      var raw = $('prevVisits').value;
-      if (raw === '') return 'Enter 0 if this is your first visit.';
-      var n = Number(raw);
-      if (!Number.isInteger(n) || n < 0 || n > 100) return 'Enter a whole number between 0 and 100.';
-      if (radioValue('visitType') === 'Follow-up' && n < 1) return 'A follow-up visit requires at least 1 previous visit.';
-      return '';
-    },
-
-    // LENGTH RULE
-    symptoms: function () {
-      var v = $('symptoms').value.trim();
-      if (!v) return 'Please describe the reason for your visit.';
+    // LENGTH rule
+    reason: function () {
+      var v = $('reason').value.trim();
+      if (!v) return 'Please tell us the reason for your visit.';
       if (v.length < 10) return 'Please write at least 10 characters (' + v.length + ' so far).';
       return '';
     },
 
-    reports: function () {
-      var f = $('reports').files[0];
-      if (!f) return ''; // optional
-      if (!/\.(pdf|jpe?g|png)$/i.test(f.name)) return 'Only PDF, JPG or PNG files are allowed.';
-      if (f.size > 2 * 1024 * 1024) return 'File is too large (' + (f.size / 1048576).toFixed(1) + ' MB). Max 2 MB.';
-      return '';
-    },
-
-    // STRENGTH / PATTERN RULE
-    password: function () {
-      var v = $('password').value;
-      if (!v) return 'Password is required.';
-      var missing = [];
-      if (v.length < 8) missing.push('8+ characters');
-      if (!/[A-Z]/.test(v)) missing.push('an uppercase letter');
-      if (!/[a-z]/.test(v)) missing.push('a lowercase letter');
-      if (!/\d/.test(v)) missing.push('a number');
-      if (!/[^A-Za-z0-9]/.test(v)) missing.push('a symbol');
-      return missing.length ? 'Password needs ' + missing.join(', ') + '.' : '';
-    },
-
-    // CROSS-FIELD: confirm password matches password
-    confirmPassword: function () {
-      var v = $('confirmPassword').value;
-      if (!v) return 'Please confirm your password.';
-      if (v !== $('password').value) return 'Passwords do not match.';
-      return '';
-    },
-
     terms: function () {
-      return $('terms').checked ? '' : 'You must accept the terms to book an appointment.';
+      return $('terms').checked ? '' : 'You must accept the terms to book.';
     }
   };
 
-  // Fields whose result depends on another field → re-check when that field changes
-  var dependents = {
-    password:  ['confirmPassword'],
-    dob:       ['apptDate', 'department'],
-    apptDate:  ['apptTime', 'department'],
-    visitType: ['prevVisits']
-  };
-
+  // When one field changes, re-check the fields that depend on it
+  var dependents = { age: ['doctor'], apptDate: ['apptTime'] };
   var touched = {};
 
-  function validateField(name) {
-    var ok = setError(name, rules[name]());
-    if (ok) markValid(name);
-    return ok;
-  }
-  function revalidateDependents(name) {
-    (dependents[name] || []).forEach(function (dep) { if (touched[dep]) validateField(dep); });
-  }
+  function validateField(name) { return setError(name, rules[name]()); }
 
-  // ---------- Live validation: on blur, then on every change once touched ----------
+  // ---------- Live validation: after leaving a field, then while typing ----------
   Object.keys(rules).forEach(function (name) {
-    var inputs = form.querySelectorAll('[name="' + name + '"]');
-    inputs.forEach(function (input) {
+    form.querySelectorAll('[name="' + name + '"]').forEach(function (input) {
+      var typing = input.matches('input[type=text], input[type=email], input[type=tel], input[type=number], textarea');
       input.addEventListener('blur', function () { touched[name] = true; validateField(name); });
-      var evt = (input.type === 'radio' || input.type === 'checkbox' || input.tagName === 'SELECT' || input.type === 'file' || input.type === 'date' || input.type === 'time') ? 'change' : 'input';
-      input.addEventListener(evt, function () {
-        if (evt === 'change') touched[name] = true;
+      input.addEventListener(typing ? 'input' : 'change', function () {
+        if (!typing) touched[name] = true;
         if (touched[name]) validateField(name);
-        revalidateDependents(name);
+        (dependents[name] || []).forEach(function (dep) { if (touched[dep]) validateField(dep); });
       });
     });
   });
 
-  // ---------- Department → Doctor dependent dropdown ----------
-  var DEPT_INFO = {
-    general:    { name: 'General Medicine', dur: '20 min', fee: '৳800' },
-    dental:     { name: 'Dental Care',      dur: '30 min', fee: '৳1,000' },
-    pediatrics: { name: 'Pediatrics',       dur: '15 min', fee: '৳700' },
-    cardiology: { name: 'Cardiology',       dur: '30 min', fee: '৳1,500' },
-    eye:        { name: 'Eye Care',         dur: '20 min', fee: '৳900' },
-    ortho:      { name: 'Orthopedics',      dur: '25 min', fee: '৳1,200' }
-  };
-  // Doctors that have a photo in assets/images (others show initials)
-  var PHOTOS = {
-    'Dr. Ayesha Rahman': 'assets/images/dr-ayesha.jpg',
-    'Dr. Tanvir Hasan':  'assets/images/dr-tanvir.jpg',
-    'Dr. Nusrat Jahan':  'assets/images/dr-nusrat.jpg',
-    'Dr. Mahbub Alam':   'assets/images/dr-mahbub.jpg'
-  };
+  $('reason').addEventListener('input', function () { $('reasonCount').textContent = this.value.length + ' / 300'; });
 
-  function fillDoctors(dept) {
-    var sel = $('doctor');
-    sel.innerHTML = '';
-    if (!dept) {
-      sel.add(new Option('Select department first', ''));
-      sel.disabled = true;
-    } else {
-      sel.add(new Option('Select doctor', ''));
-      DOCTORS[dept].forEach(function (d) { sel.add(new Option(d, d)); });
-      sel.disabled = false;
-    }
-    updatePreview();
-  }
-
-  // Sidebar card showing the chosen doctor
-  function updatePreview() {
-    var dept = $('department').value, doc = $('doctor').value, info = DEPT_INFO[dept];
-    var img = $('pvImg'), ini = $('pvInitials'), empty = $('pvEmpty');
-    if (!img) return;
-    $('pvRole').textContent = info ? info.name : 'Your doctor';
-    $('pvName').textContent = doc || (info ? 'Choose a doctor' : 'Not selected yet');
-    $('pvDur').textContent = info ? info.dur : '—';
-    $('pvFee').textContent = info ? info.fee : '—';
-    img.hidden = ini.hidden = true; empty.hidden = false;
-    if (doc && PHOTOS[doc]) {
-      img.src = PHOTOS[doc]; img.alt = doc; img.hidden = false; empty.hidden = true;
-    } else if (doc) {
-      ini.textContent = doc.replace('Dr. ', '').split(' ').map(function (w) { return w[0]; }).join('');
-      ini.hidden = false; empty.hidden = true;
-    }
-  }
-
-  $('department').addEventListener('change', function () {
-    fillDoctors(this.value);
-    $('doctor').classList.remove('is-valid');
-    if (touched.doctor) validateField('doctor');
-  });
-  $('doctor').addEventListener('change', updatePreview);
-
-  // Pre-select department (and doctor) from the URL — links from Page 1 cards
+  // ---------- Pre-select a doctor from the URL (links on the home page) ----------
   var params = new URLSearchParams(location.search);
-  var qDept = params.get('dept'), qDoc = params.get('doctor');
-  if (qDept && DOCTORS[qDept]) {
-    $('department').value = qDept;
-    fillDoctors(qDept);
-    if (qDoc && DOCTORS[qDept].indexOf(qDoc) !== -1) { $('doctor').value = qDoc; updatePreview(); }
+  var DEPT_FROM_URL = { general: 'General Medicine', dental: 'Dental Care', pediatrics: 'Pediatrics', cardiology: 'Cardiology', eye: 'Eye Care', ortho: 'Orthopedics' };
+  if (params.get('doctor')) {
+    $('doctor').value = params.get('doctor');   // unknown name → stays on "Select a doctor"
+  } else if (DEPT_FROM_URL[params.get('dept')]) {
+    var first = $('doctor').querySelector('option[data-dept="' + DEPT_FROM_URL[params.get('dept')] + '"]');
+    if (first) $('doctor').value = first.value;
   }
 
-  // ---------- Character counter ----------
-  $('symptoms').addEventListener('input', function () {
-    $('symptomsCount').textContent = this.value.length + ' / 500';
-  });
-
-  // ---------- Password strength meter (4 bars) ----------
-  var HINT = '8+ characters with uppercase, lowercase, a number and a symbol';
-  function updateMeter() {
-    var v = $('password').value, score = 0;
-    if (v.length >= 8) score++;
-    if (/[A-Z]/.test(v) && /[a-z]/.test(v)) score++;
-    if (/\d/.test(v)) score++;
-    if (/[^A-Za-z0-9]/.test(v)) score++;
-    if (v && score === 0) score = 1;
-    var colors = ['#dc2626', '#f59e0b', '#3b82f6', '#15803d'];
-    var labels = ['Weak', 'Fair', 'Good', 'Strong'];
-    form.querySelectorAll('.meter span').forEach(function (bar, i) {
-      bar.style.background = i < score ? colors[score - 1] : '';
-    });
-    $('strengthText').textContent = v ? 'Strength: ' + labels[score - 1] : HINT;
+  // ---------- Save to localStorage ----------
+  function saveAppointment(appt) {
+    try {
+      var list = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      list.push(appt);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+      return true;
+    } catch (e) {
+      return false;                        // private mode / storage blocked
+    }
   }
-  $('password').addEventListener('input', updateMeter);
-
-  // ---------- Progress sidebar ----------
-  var stepFields = { 1: ['fullName', 'email', 'phone', 'dob', 'gender'],
-                     2: ['department', 'doctor', 'apptDate', 'apptTime'],
-                     3: ['visitType', 'prevVisits', 'symptoms', 'reports'],
-                     4: ['password', 'confirmPassword', 'terms'] };
-  var currentStep = 1;
-  function updateProgress() {
-    Object.keys(stepFields).forEach(function (step) {
-      var li = document.querySelector('#progress li[data-step="' + step + '"]');
-      var done = stepFields[step].every(function (f) { return !rules[f](); });
-      li.classList.toggle('done', done);
-      li.classList.toggle('current', +step === currentStep && !done);
-    });
-  }
-  form.addEventListener('focusin', function (e) {
-    var fs = e.target.closest('fieldset[data-step]');
-    if (fs) { currentStep = +fs.dataset.step; updateProgress(); }
-  });
-  form.addEventListener('input', updateProgress);
-  form.addEventListener('change', updateProgress);
-
-  // ---------- Show / hide password ----------
-  document.querySelectorAll('.toggle-pw').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      var input = $(btn.dataset.target);
-      var show = input.type === 'password';
-      input.type = show ? 'text' : 'password';
-      btn.innerHTML = show ? '<i class="bi bi-eye-slash"></i>' : '<i class="bi bi-eye"></i>';
-      btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
-    });
-  });
 
   // ---------- Submit ----------
   form.addEventListener('submit', function (e) {
@@ -366,72 +193,60 @@
       touched[name] = true;
       if (!validateField(name) && !firstInvalid) firstInvalid = name;
     });
-
     if (firstInvalid) {
       var target = $(firstInvalid) || form.querySelector('[name="' + firstInvalid + '"]');
       target.scrollIntoView({ behavior: 'smooth', block: 'center' });
       target.focus({ preventScroll: true });
       return;
     }
-    showSummary();
+
+    var appt = {
+      ref: 'CP-' + Date.now().toString().slice(-6),
+      name: $('fullName').value.trim(),
+      email: $('email').value.trim(),
+      phone: $('phone').value.trim(),
+      age: Number($('age').value),
+      gender: radioValue('gender'),
+      doctor: $('doctor').value,
+      dept: selectedDept(),
+      date: $('apptDate').value,
+      time: $('apptTime').value,
+      reason: $('reason').value.trim(),
+      createdAt: new Date().toISOString()
+    };
+    showSummary(appt, saveAppointment(appt));
   });
 
-  function showSummary() {
-    var deptSel = $('department');
-    var d = parseDate($('apptDate').value);
-    var t = $('apptTime').value.split(':');
-    var h = +t[0], ampm = h >= 12 ? 'PM' : 'AM';
-    var file = $('reports').files[0];
+  function showSummary(a, saved) {
     var rows = [
-      ['Full Name', $('fullName').value.trim()],
-      ['Email', $('email').value.trim()],
-      ['Mobile', $('phone').value.trim()],
-      ['Date of Birth', parseDate($('dob').value).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) +
-                        ' (age ' + ageOn(parseDate($('dob').value), today()) + ')'],
-      ['Gender', radioValue('gender')],
-      ['Department', deptSel.options[deptSel.selectedIndex].text],
-      ['Doctor', $('doctor').value],
-      ['Date', d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })],
-      ['Time', ((h % 12) || 12) + ':' + t[1] + ' ' + ampm],
-      ['Visit Type', radioValue('visitType')],
-      ['Previous Visits', $('prevVisits').value],
-      ['Reason / Symptoms', $('symptoms').value.trim(), true],
-      ['Uploaded Report', file ? file.name + ' (' + Math.ceil(file.size / 1024) + ' KB)' : 'None'],
-      ['SMS Reminder', $('smsReminder').checked ? 'Yes' : 'No'],
-      ['Portal Password', 'Set (hidden for security)']
+      ['Full Name', a.name], ['Email', a.email], ['Mobile', a.phone], ['Age', a.age],
+      ['Gender', a.gender], ['Doctor', a.doctor + ' (' + a.dept + ')'],
+      ['Date', parseDate(a.date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })],
+      ['Time', to12h(a.time)], ['Reason for Visit', a.reason, true]
     ];
-
-    // Build summary with textContent (safe — never inject user input as HTML)
     var body = $('summaryBody');
     body.innerHTML = '';
-    rows.forEach(function (r) {
+    rows.forEach(function (r) {            // textContent keeps user input safe
       var wrap = document.createElement('div');
       if (r[2]) wrap.className = 'wide';
       var dt = document.createElement('dt'); dt.textContent = r[0];
       var dd = document.createElement('dd'); dd.textContent = r[1];
       wrap.appendChild(dt); wrap.appendChild(dd); body.appendChild(wrap);
     });
+    $('refNo').textContent = a.ref + (saved ? '' : ' (not saved — browser storage is blocked)');
 
-    $('refNo').textContent = 'CP-' + Date.now().toString().slice(-6);
     formCard.classList.add('hidden');
     successBox.classList.add('show');
     successBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
     successBox.focus({ preventScroll: true });
   }
 
-  // ---------- Reset: clear values, errors, meter, doctor list ----------
+  // ---------- Reset: clear values and all error messages ----------
   form.addEventListener('reset', function () {
-    setTimeout(function () { // let the browser clear values first
-      Object.keys(rules).forEach(function (name) {
-        setError(name, '');
-        var el = $(name); if (el) el.classList.remove('is-valid');
-      });
+    setTimeout(function () {               // wait for the browser to clear values
+      Object.keys(rules).forEach(function (name) { setError(name, ''); });
       touched = {};
-      fillDoctors('');
-      $('symptomsCount').textContent = '0 / 500';
-      updateMeter();
-      currentStep = 1;
-      updateProgress();
+      $('reasonCount').textContent = '0 / 300';
     }, 0);
   });
 
