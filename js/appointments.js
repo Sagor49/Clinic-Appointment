@@ -76,6 +76,12 @@
       meta.appendChild(el('span', '', d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) + ' at ' + to12h(a.time)));
       info.appendChild(meta);
       info.appendChild(el('p', 'appt-reason', a.reason));
+      if (a.report) {
+        var file = el('p', 'appt-file');
+        file.innerHTML = '<i class="bi bi-paperclip"></i> ';
+        file.appendChild(document.createTextNode(a.report));
+        info.appendChild(file);
+      }
 
       var btn = el('button', 'btn btn-ghost appt-cancel');
       btn.type = 'button';

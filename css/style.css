@@ -2605,3 +2605,17 @@ input[type="file"].control::file-selector-button {
     width: 100%;
   }
 }
+
+/* attached report shown on My Appointments */
+.appt-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--gold-50);
+  color: #8a6a33;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}

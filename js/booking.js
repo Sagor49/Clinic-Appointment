@@ -32,6 +32,9 @@
     var opt = $('doctor').selectedOptions[0];
     return opt ? opt.getAttribute('data-dept') || '' : '';
   }
+  function fileLabel(f) {                 // "report.pdf (120 KB)" or ''
+    return f ? f.name + ' (' + Math.ceil(f.size / 1024) + ' KB)' : '';
+  }
   function to12h(t) {                     // "14:30" → "2:30 PM"
     var h = +t.split(':')[0], m = t.split(':')[1];
     return ((h % 12) || 12) + ':' + m + ' ' + (h >= 12 ? 'PM' : 'AM');
@@ -137,6 +140,15 @@
       return '';
     },
 
+    // Optional file: only PDF / JPG / PNG up to 2 MB
+    reports: function () {
+      var f = $('reports').files[0];
+      if (!f) return '';
+      if (!/\.(pdf|jpe?g|png)$/i.test(f.name)) return 'Only PDF, JPG or PNG files are allowed.';
+      if (f.size > 2 * 1024 * 1024) return 'File is too large (' + (f.size / 1048576).toFixed(1) + ' MB). Maximum is 2 MB.';
+      return '';
+    },
+
     terms: function () {
       return $('terms').checked ? '' : 'You must accept the terms to book.';
     }
@@ -212,6 +224,7 @@
       date: $('apptDate').value,
       time: $('apptTime').value,
       reason: $('reason').value.trim(),
+      report: fileLabel($('reports').files[0]),   // only the file name + size is saved, not the file itself
       createdAt: new Date().toISOString()
     };
     showSummary(appt, saveAppointment(appt));
@@ -222,7 +235,8 @@
       ['Full Name', a.name], ['Email', a.email], ['Mobile', a.phone], ['Age', a.age],
       ['Gender', a.gender], ['Doctor', a.doctor + ' (' + a.dept + ')'],
       ['Date', parseDate(a.date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })],
-      ['Time', to12h(a.time)], ['Reason for Visit', a.reason, true]
+      ['Time', to12h(a.time)], ['Reason for Visit', a.reason, true],
+      ['Uploaded Report', a.report || 'None', true]
     ];
     var body = $('summaryBody');
     body.innerHTML = '';
