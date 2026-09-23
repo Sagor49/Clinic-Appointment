@@ -1190,7 +1190,7 @@ textarea {
   content: "CarePoint";
   position: absolute;
   left: 50%;
-  bottom: -60px;
+  bottom: 76px;
   transform: translateX(-50%);
   white-space: nowrap;
   font-family: var(--font-display);
@@ -2003,7 +2003,7 @@ input[type="file"].control::file-selector-button {
    ========================================================================== */
 
 /* ----- Tablet + Mobile (< 1024px): hamburger navigation ----- */
-@media (max-width: 1023px) {
+@media (max-width: 1024px) {
   .nav-toggle {
     display: inline-flex;
   }
@@ -2062,8 +2062,16 @@ input[type="file"].control::file-selector-button {
   }
 }
 
+@media (min-width: 1025px) and (max-width: 1200px){
+   .nav-menu {
+    gap: 5px;
+}
+}
+
+
+
 /* ----- Tablet: 768px – 1023px ----- */
-@media (min-width: 768px) and (max-width: 1023px) {
+@media (min-width: 768px) and (max-width: 1024px) {
   .container {
     padding: 0 36px;
   }
@@ -2458,10 +2466,10 @@ input[type="file"].control::file-selector-button {
     padding: 72px 0 28px;
     margin-top: 88px;
   }
-  .footer::before {
-    font-size: 110px;
-    bottom: -24px;
-  }
+      .footer::before {
+        font-size: 75px;
+        bottom: 85px;
+    }
   .footer-grid {
     grid-template-columns: 1fr 1fr;
     gap: 40px 24px;
